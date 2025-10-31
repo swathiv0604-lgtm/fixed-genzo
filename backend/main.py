@@ -5,21 +5,21 @@ from openai import OpenAI
 import os
 import sqlite3
 
-# Load environment variables
+# ---------- Load environment variables ----------
 load_dotenv()
 
 app = FastAPI()
 
-# Allow frontend
+# ---------- Allow all origins (for Streamlit frontend) ----------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # You can restrict this later to your Streamlit domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Connect to DB
+# ---------- Connect to SQLite database ----------
 conn = sqlite3.connect("chat_history.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute("""
@@ -31,19 +31,25 @@ CREATE TABLE IF NOT EXISTS chats (
 """)
 conn.commit()
 
-# Groq client setup
+# ---------- Initialize Groq client ----------
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
     api_key=os.getenv("GROQ_API_KEY"),
 )
+
+# ---------- Root route ----------
 @app.get("/")
 def home():
     return {"message": "✅ Genzo FastAPI backend is running successfully!"}
 
+# ---------- Chat route ----------
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
     user_message = data.get("message", "")
+
+    if not user_message.strip():
+        return {"response": "⚠️ Please enter a valid message."}
 
     try:
         completion = client.chat.completions.create(
@@ -57,7 +63,7 @@ async def chat(request: Request):
     except Exception as e:
         bot_reply = f"⚠️ AI model error: {e}"
 
-    # Save conversation
+    # ---------- Save conversation ----------
     cursor.execute(
         "INSERT INTO chats (user_message, bot_reply) VALUES (?, ?)",
         (user_message, bot_reply)

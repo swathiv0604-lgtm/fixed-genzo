@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_lottie import st_lottie
 import json, os, requests
 
-# ---------- LOAD LOTTIE ----------
+# ---------- Load Lottie animation ----------
 def load_lottiefile():
     filepath = os.path.join(os.path.dirname(__file__), "animation.json")
     with open(filepath, "r", encoding="utf-8") as f:
@@ -10,10 +10,10 @@ def load_lottiefile():
 
 lottie_chatbot = load_lottiefile()
 
-# ---------- PAGE CONFIG ----------
+# ---------- Page Config ----------
 st.set_page_config(page_title="Genzo Chatbot 💬", page_icon="🤖", layout="wide")
 
-# ---------- CUSTOM STYLE ----------
+# ---------- Custom CSS ----------
 page_bg = """
 <style>
 body {
@@ -73,7 +73,7 @@ h1 {
 """
 st.markdown(page_bg, unsafe_allow_html=True)
 
-# ---------- HEADER ----------
+# ---------- Header ----------
 col1, col2 = st.columns([2, 1])
 with col1:
     st.markdown("<h1>🤖 Genzo Chatbot</h1>", unsafe_allow_html=True)
@@ -81,7 +81,7 @@ with col1:
 with col2:
     st_lottie(lottie_chatbot, height=200, key="chatbot")
 
-# ---------- CHAT UI ----------
+# ---------- Chat Container ----------
 st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
@@ -92,13 +92,14 @@ for msg in st.session_state["messages"]:
     bubble = "user-bubble" if msg["role"] == "user" else "bot-bubble"
     st.markdown(f"<div class='{bubble}'>{msg['content']}</div>", unsafe_allow_html=True)
 
-# ---------- INPUT BOX ----------
+# ---------- Chat Input ----------
 user_input = st.chat_input("Type your message here...")
 
 if user_input:
     st.session_state["messages"].append({"role": "user", "content": user_input})
     
     try:
+        # ✅ Make sure this URL matches your Render backend name
         backend_url = "https://genzo-fastapi-backend.onrender.com/chat"
 
         response = requests.post(backend_url, json={"message": user_input})
