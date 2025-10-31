@@ -99,7 +99,9 @@ if user_input:
     st.session_state["messages"].append({"role": "user", "content": user_input})
     
     try:
-        response = requests.post("http://127.0.0.1:8000/chat", json={"message": user_input})
+        backend_url = "https://genzo-fastapi-backend.onrender.com/chat"
+
+        response = requests.post(backend_url, json={"message": user_input})
         bot_reply = response.json().get("response", "⚠️ Backend error.")
     except Exception as e:
         bot_reply = f"⚠️ Connection error: {e}"
