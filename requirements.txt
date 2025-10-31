@@ -2,3 +2,5 @@ fastapi
 uvicorn
 requests
 streamlit
+python-dotenv
+sqlite3-binary
