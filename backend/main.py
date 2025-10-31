@@ -36,6 +36,9 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
     api_key=os.getenv("GROQ_API_KEY"),
 )
+@app.get("/")
+def home():
+    return {"message": "✅ Genzo FastAPI backend is running successfully!"}
 
 @app.post("/chat")
 async def chat(request: Request):
