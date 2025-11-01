@@ -8,18 +8,19 @@ import sqlite3
 # Load environment variables
 load_dotenv()
 
+# Initialize FastAPI
 app = FastAPI()
 
-# Allow frontend
+# Allow frontend requests (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # You can restrict this later to specific URLs if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Connect to DB
+# Connect to SQLite database
 conn = sqlite3.connect("chat_history.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute("""
@@ -31,16 +32,18 @@ CREATE TABLE IF NOT EXISTS chats (
 """)
 conn.commit()
 
-# Groq client setup
+# Initialize Groq (OpenAI-compatible) client
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
     api_key=os.getenv("GROQ_API_KEY"),
 )
 
+# Optional: Home route for testing
 @app.get("/")
 def home():
     return {"message": "✅ Genzo FastAPI backend is running successfully!"}
 
+# Chat endpoint
 @app.post("/chat")
 async def chat(request: Request):
     try:
@@ -57,8 +60,10 @@ async def chat(request: Request):
                 {"role": "user", "content": user_message},
             ],
         )
+
         bot_reply = completion.choices[0].message.content
 
+        # Save chat to database
         cursor.execute(
             "INSERT INTO chats (user_message, bot_reply) VALUES (?, ?)",
             (user_message, bot_reply)
@@ -68,4 +73,4 @@ async def chat(request: Request):
         return {"response": bot_reply}
 
     except Exception as e:
-        return {"response": f"⚠️ Backend error: {e}"}
+        return {"response": f"⚠️ Backend error: {str(e)}"}
